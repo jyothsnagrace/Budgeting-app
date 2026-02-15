@@ -13,7 +13,7 @@ import time
 import logging
 
 from backend.config import settings, validate_config, print_config_summary
-from backend.api import auth, expenses, budgets, voice_routes, cost_routes
+from backend.api import auth, expenses, budgets, voice_routes, cost_routes, advisor
 from backend.utils.logger import setup_logging
 
 # Setup logging
@@ -179,6 +179,12 @@ app.include_router(
     cost_routes.router,
     prefix=settings.API_PREFIX,
     tags=["Cost of Living"]
+)
+
+app.include_router(
+    advisor.router,
+    prefix=settings.API_PREFIX,
+    tags=["AI Advisor"]
 )
 
 

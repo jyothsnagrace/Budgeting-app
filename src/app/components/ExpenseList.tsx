@@ -2,6 +2,7 @@ import { Trash2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { ScrollArea } from './ui/scroll-area';
+import { formatDateTimeForDisplay } from '../utils/dateUtils';
 
 interface Expense {
   id: string;
@@ -50,13 +51,7 @@ export function ExpenseList({ expenses, onDeleteExpense }: ExpenseListProps) {
                       <p className="text-xs sm:text-sm text-gray-600 mt-1 truncate">{expense.description}</p>
                     )}
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(expense.date).toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
+                      {formatDateTimeForDisplay(expense.date)}
                     </p>
                   </div>
                   <Button

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Calendar as CalendarIcon, DollarSign } from 'lucide-react';
 import { format, isSameDay, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { parseDate } from '../utils/dateUtils';
 
 interface Expense {
   id: string;
@@ -18,10 +19,10 @@ interface SpendingCalendarProps {
 export function SpendingCalendar({ expenses }: SpendingCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Get expenses grouped by day
+  // Get expenses grouped by day (parse dates in local timezone)
   const getExpensesForDay = (date: Date) => {
     return expenses.filter(expense => 
-      isSameDay(new Date(expense.date), date)
+      isSameDay(parseDate(expense.date), date)
     );
   };
 
@@ -58,6 +59,12 @@ export function SpendingCalendar({ expenses }: SpendingCalendarProps) {
     if (amount < 50) return 'bg-yellow-100 border-yellow-300 text-yellow-800';
     if (amount < 100) return 'bg-orange-100 border-orange-300 text-orange-800';
     return 'bg-red-100 border-red-300 text-red-800';
+  };
+
+  // Extract category emoji from category string
+  const getCategoryEmoji = (category: string) => {
+    const match = category.match(/^([\u{1F300}-\u{1F9FF}])/u);
+    return match ? match[1] : '💰';
   };
 
   const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -124,27 +131,70 @@ export function SpendingCalendar({ expenses }: SpendingCalendarProps) {
             return (
               <div
                 key={day.toISOString()}
-                className={`
-                  aspect-square border-2 rounded-lg p-1 sm:p-2 flex flex-col items-center justify-start
-                  transition-all hover:shadow-md cursor-pointer
-                  ${getSpendingColor(total)}
-                  ${isToday ? 'ring-2 ring-blue-500 ring-offset-2' : 'border-gray-200'}
-                  ${total === 0 ? 'bg-white hover:bg-gray-50' : ''}
-                `}
-                title={dayExpenses.length > 0 
-                  ? `${dayExpenses.length} expense${dayExpenses.length > 1 ? 's' : ''}: $${total.toFixed(2)}`
-                  : 'No expenses'
-                }
+                className="relative group"
               >
-                <span className={`text-xs sm:text-sm font-semibold ${isToday ? 'text-blue-700' : ''}`}>
-                  {format(day, 'd')}
-                </span>
-                {total > 0 && (
-                  <div className="flex flex-col items-center mt-1">
-                    <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="text-[10px] sm:text-xs font-bold">
-                      {total >= 100 ? `${Math.round(total)}` : total.toFixed(0)}
-                    </span>
+                <div
+                  className={`
+                    aspect-square border-2 rounded-lg p-1 flex flex-col items-start justify-start
+                    transition-all hover:shadow-lg hover:scale-105 cursor-pointer
+                    ${getSpendingColor(total)}
+                    ${isToday ? 'ring-2 ring-blue-500 ring-offset-1' : 'border-gray-200'}
+                    ${total === 0 ? 'bg-white hover:bg-gray-50' : ''}
+                    relative overflow-hidden
+                  `}
+                >
+                  {/* Day number */}
+                  <span className={`text-[10px] sm:text-xs font-bold ${isToday ? 'text-blue-700' : ''} mb-0.5`}>
+                    {format(day, 'd')}
+                  </span>
+                  
+                  {/* Expense indicators */}
+                  {dayExpenses.length > 0 && (
+                    <div className="flex flex-col gap-0.5 w-full">
+                      {dayExpenses.slice(0, 2).map((expense, idx) => (
+                        <div key={expense.id} className="flex items-center justify-between w-full text-[8px] sm:text-[10px] bg-white/70 rounded px-1 py-0.5">
+                          <span className="text-[10px] sm:text-xs">{getCategoryEmoji(expense.category)}</span>
+                          <span className="font-semibold truncate ml-1">${expense.amount.toFixed(0)}</span>
+                        </div>
+                      ))}
+                      {dayExpenses.length > 2 && (
+                        <div className="text-[8px] sm:text-[9px] text-center bg-white/70 rounded px-1 py-0.5 font-semibold">
+                          +{dayExpenses.length - 2} more
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Hover tooltip with expense details */}
+                {dayExpenses.length > 0 && (
+                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-64 p-3 bg-white rounded-lg shadow-2xl border-2 border-cyan-300 z-50 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
+                    {/* Arrow pointer */}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-2 border-8 border-transparent border-t-cyan-300" />
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[15px] border-[7px] border-transparent border-t-white" />
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between border-b-2 border-cyan-200 pb-2">
+                        <h4 className="font-semibold text-sm text-cyan-900">{format(day, 'MMM d, yyyy')}</h4>
+                        <span className="font-bold text-cyan-600">${total.toFixed(2)}</span>
+                      </div>
+                      <div className="max-h-48 overflow-y-auto">
+                        {dayExpenses.map(expense => (
+                          <div key={expense.id} className="flex items-start justify-between text-xs py-1.5 border-b border-gray-100 last:border-0">
+                            <div className="flex items-start gap-2 flex-1">
+                              <span className="text-base">{getCategoryEmoji(expense.category)}</span>
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-gray-900">{expense.category.replace(/^[\u{1F300}-\u{1F9FF}]\s*/u, '')}</div>
+                                {expense.description && (
+                                  <div className="text-gray-500 text-[11px] truncate">{expense.description}</div>
+                                )}
+                              </div>
+                            </div>
+                            <span className="font-semibold text-gray-900 ml-2 flex-shrink-0">${expense.amount.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -181,7 +231,7 @@ export function SpendingCalendar({ expenses }: SpendingCalendarProps) {
             <span className="text-lg font-bold text-cyan-700">
               ${expenses
                 .filter(e => {
-                  const expenseDate = new Date(e.date);
+                  const expenseDate = parseDate(e.date);
                   return expenseDate.getMonth() === currentDate.getMonth() &&
                          expenseDate.getFullYear() === currentDate.getFullYear();
                 })

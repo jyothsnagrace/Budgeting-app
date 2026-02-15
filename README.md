@@ -1,279 +1,338 @@
-# 💰 LLM-Powered Expense Tracking App
+# 💰 Smart Budget Companion
 
-> A lightweight, intelligent expense tracking system with multimodal input, powered by Large Language Models.
+> An intelligent personal finance app with AI-powered expense tracking, receipt OCR, and location-aware financial advice.
 
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)](https://www.python.org/)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-blue)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-green)](https://fastapi.tiangolo.com/)
-[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Production%20Ready-success)](PROJECT_EVALUATION.md)
+[![React](https://img.shields.io/badge/React-18-61DAFB)](https://reactjs.org/)
+[![Status](https://img.shields.io/badge/Status-Production%20Ready-success)](#)
 
 ---
 
 ## 🎯 Overview
 
-An intelligent expense tracking application that uses **Large Language Models (LLMs)** to process natural language and voice inputs for seamless expense management. Perfect for graduate-level LLM application courses and real-world deployment.
+A full-stack personal budgeting application that combines **Large Language Models (LLMs)** with **computer vision** to make expense tracking effortless. Features natural language processing, receipt OCR, and an AI financial advisor that provides location-aware spending insights.
 
-### 🌟 Key Features
+### ✨ Key Features
 
-- ✅ **Natural Language Processing**: Add expenses by simply saying "I spent 45 dollars on pizza"
-- ✅ **Voice Input**: Speech-to-text using OpenAI Whisper (local or cloud)
-- ✅ **Two-LLM Pipeline**: Extraction → Validation for accurate data processing
-- ✅ **Structured Function Calling**: JSON schema-validated LLM outputs
-- ✅ **Cost-of-Living Insights**: Compare your spending to city averages
-- ✅ **Budget Management**: Set limits and track spending by category
-- ✅ **Zero-Cost Deployment**: Run entirely on free-tier services
+- 🤖 **AI Financial Advisor** - Chat with your budget buddy (Penguin 🐧, Dragon 🐉, Cat 🐱, or Capybara 🦫)
+- 📸 **Receipt OCR** - Upload receipt photos for automatic expense extraction
+- 💬 **Natural Language Input** - Type "Spent $45 on pizza" instead of filling forms
+- 📍 **Location-Aware Insights** - Compare spending to 54 US cities using real-time cost-of-living data
+- 📅 **Interactive Calendar** - Visual spending patterns with hover details
+- 🎨 **Companion System** - Build friendship levels through consistent tracking
+- 📊 **Smart Analytics** - Category breakdowns, trends, and budget alerts
 
 ---
 
 ## 🏗️ Architecture
 
+### Frontend (React + TypeScript)
 ```
-┌─────────────┐
-│  User Input │  (Text or Voice)
-└──────┬──────┘
-       ▼
-┌──────────────────────────────────┐
-│  FastAPI Backend (Python)        │
-│  ┌────────────────────────────┐ │
-│  │  Voice → Whisper STT       │ │
-│  └────────────┬───────────────┘ │
-│               ▼                  │
-│  ┌────────────────────────────┐ │
-│  │  LLM #1: Extract Data      │ │  (Ollama/Groq)
-│  └────────────┬───────────────┘ │
-│               ▼                  │
-│  ┌────────────────────────────┐ │
-│  │  LLM #2: Validate & Clean  │ │
-│  └────────────┬───────────────┘ │
-│               ▼                  │
-│  ┌────────────────────────────┐ │
-│  │  JSON Schema Validation    │ │
-│  └────────────┬───────────────┘ │
-└───────────────┼──────────────────┘
-                ▼
-    ┌───────────────────────┐
-    │  Supabase (PostgreSQL) │
-    └───────────────────────┘
+src/app/
+├── components/
+│   ├── BudgetBuddy.tsx        # AI Chat Advisor
+│   ├── SpendingForm.tsx       # Multi-modal input (text/OCR/manual)
+│   ├── SpendingCalendar.tsx   # Interactive expense calendar
+│   ├── SpendingGraph.tsx      # Category analytics
+│   └── CompanionSelector.tsx  # Pet selection system
+└── utils/
+    └── dateUtils.ts           # Timezone-safe date handling
 ```
 
-**See [ARCHITECTURE.md](ARCHITECTURE.md) for detailed architecture diagrams.**
+### Backend (FastAPI + Python)
+```
+backend/
+├── api/
+│   ├── advisor.py             # AI Financial Advisor (Groq LLM)
+│   ├── expenses.py            # Expense CRUD + OCR
+│   ├── budgets.py             # Budget management
+│   ├── cost_of_living.py      # RapidAPI integration
+│   └── auth.py                # JWT authentication
+├── llm/
+│   ├── pipeline.py            # LLM orchestration
+│   ├── prompts.py             # Personality system prompts
+│   └── schemas.py             # Pydantic validation
+└── database/
+    └── client.py              # Supabase PostgreSQL
+```
+
+**Detailed diagrams:** [Architecture Documentation](docs/ARCHITECTURE.md)
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.9+
-- Supabase account (free)
-- Ollama installed (or Groq API key)
+- **Node.js** 18+ and npm
+- **Python** 3.11+
+- **Supabase** account (free tier)
+- **API Keys** (free):
+  - Groq API (LLM)
+  - RapidAPI (cost-of-living data)
 
 ### Installation
 
 ```bash
-# 1. Navigate to project
-cd "c:\Users\jyoth\Downloads\Project_0210\Budgeting app"
+# 1. Clone and navigate
+cd "Budgeting app"
 
-# 2. Create virtual environment
+# 2. Install frontend dependencies
+npm install
+
+# 3. Set up Python environment
 python -m venv venv
 venv\Scripts\activate  # Windows
-# source venv/bin/activate  # Linux/Mac
-
-# 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Set up environment variables
-# Create .env file with your Supabase credentials
-# (See .env.example)
+# 4. Configure environment variables
+# Create .env file with:
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
+GROQ_API_KEY=your_groq_key
+RAPIDAPI_KEY=your_rapidapi_key
 
-# 5. Install and start Ollama
-ollama pull llama3.2
+# 5. Set up database
+# Run database_schema.sql in Supabase SQL Editor
 
-# 6. Run database schema
-# Copy database_schema.sql to Supabase SQL Editor
-
-# 7. Start the server
+# 6. Start both servers
+# Terminal 1 (Backend):
 python -m backend.main
+
+# Terminal 2 (Frontend):
+npm run dev
 ```
 
-**Access the API:**
-- 📖 Swagger Docs: http://localhost:8000/docs
-- 📖 ReDoc: http://localhost:8000/redoc
-- ✅ Health Check: http://localhost:8000/health
+**Access the app:**
+- 🌐 **Frontend**: http://localhost:5173
+- 📖 **API Docs**: http://localhost:8000/docs
+- ✅ **Health Check**: http://localhost:8000/health
 
-**For detailed setup instructions, see [SETUP_GUIDE.md](SETUP_GUIDE.md)**
+**Full setup instructions:** [Setup Guide](SETUP_GUIDE.md)
 
 ---
 
-## 📚 Usage Examples
+## 💡 Usage
 
-### Adding Expenses (Natural Language)
+### 1. Quick Add Expense
+Type naturally: `"Spent $32 on Uber to airport"`
+- Parses amount, category, description automatically
+- Switches to manual entry for review
+- One-click submit
 
-```python
-import requests
+### 2. Receipt Upload
+- Click "Upload Receipt" button
+- Select photo (PNG/JPG)
+- Auto-extracts: amount, merchant, items
+- Review and submit
 
-BASE_URL = "http://localhost:8000/api/v1"
+### 3. Ask Your AI Advisor
+Choose your companion (each has unique personality):
+- **Penny the Penguin** 🐧 - Cheerful and bubbly
+- **Esper the Dragon** 🐉 - Wise guardian of treasure
+- **Mochi the Cat** 🐱 - Sassy but adorable
+- **Capy the Capybara** 🦫 - Zen master of chill
 
-# Login
-response = requests.post(f"{BASE_URL}/auth/login", 
-    json={"username": "alice"})
-user_id = response.json()["user_id"]
+**Example questions:**
+- "Should I buy or rent in Charlotte?"
+- "Where are budget-friendly restaurants in Denver?"
+- "How does my spending compare to Seattle average?"
 
-# Add expense from natural language
-response = requests.post(f"{BASE_URL}/expenses/add", json={
-    "user_id": user_id,
-    "input_text": "I spent 45 dollars on pizza last night",
-    "input_method": "text"
-})
+Responses adapt based on:
+- Pet personality
+- Friendship level (0-100)
+- Current mood (happy/worried/over budget)
 
-expense = response.json()
-print(f"Added: ${expense['amount']} for {expense['category']}")
-# Output: Added: $45.0 for food
-```
+### 4. Calendar View
+- Hover over any day to see expense breakdown
+- Category icons + amounts displayed inline
+- Color-coded by spending level
 
-### Voice Input
+---
 
-```python
-# Transcribe audio file
-with open("recording.wav", "rb") as f:
-    response = requests.post(f"{BASE_URL}/voice/transcribe",
-        files={"audio_file": f},
-        data={"mode": "local"}
-    )
+## 🛠️ Technology Stack
 
-text = response.json()["text"]
-print(f"Transcribed: {text}")
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Frontend** | React 18 + TypeScript | SPA with Vite bundler |
+| **UI Components** | Radix UI + Tailwind CSS | Accessible, customizable components |
+| **Backend** | FastAPI 0.115 | Async REST API |
+| **Database** | Supabase (PostgreSQL) | Row-level security, real-time |
+| **LLM** | Groq (LLaMA 3.1 8B) | Fast inference for chat |
+| **OCR** | Backend LLM pipeline | Receipt text extraction |
+| **Cost Data** | RapidAPI | Real-time city cost-of-living |
+| **Auth** | JWT tokens | Secure user sessions |
 
-# Add expense from transcription
-response = requests.post(f"{BASE_URL}/expenses/add", json={
-    "user_id": user_id,
-    "input_text": text,
-    "input_method": "voice"
-})
-```
+**Total Cost:** $0/month (free tiers) 🎉
 
-### Budget Management
+---
 
-```python
-# Set monthly budget
-requests.post(f"{BASE_URL}/budgets/set", json={
-    "user_id": user_id,
-    "category": "food",
-    "amount": 500,
-    "period": "monthly"
-})
+## 📊 Features
 
-# Check budget status
-response = requests.get(f"{BASE_URL}/budgets/list",
-    params={"user_id": user_id})
+### ✅ Implemented
 
-budgets = response.json()
-for budget in budgets["budgets"]:
-    b = budget["budget"]
-    print(f"{b['category']}: ${budget['spent']}/${b['amount']}")
-    if budget["is_exceeded"]:
-        print("  ⚠️ BUDGET EXCEEDED!")
-```
+| Feature | Status | Description |
+|---------|--------|-------------|
+| **Natural Language Parser** | ✅ | LLM-powered expense extraction |
+| **Receipt OCR** | ✅ | Upload photos, auto-fill expenses |
+| **AI Financial Advisor** | ✅ | Location-aware chat with 4 personalities |
+| **Cost-of-Living API** | ✅ | 54 US cities with real-time data |
+| **Budget Tracking** | ✅ | Category limits with alerts |
+| **Interactive Calendar** | ✅ | Hover tooltips with expense details |
+| **Companion System** | ✅ | Friendship levels + mood adaptation |
+| **Multi-Input Methods** | ✅ | Text/OCR/Manual entry |
+| **Responsive Design** | ✅ | Mobile-friendly UI |
+| **Database Security** | ✅ | Fixed search_path vulnerability |
 
-### Cost-of-Living Comparison
-
-```python
-# Compare spending to city average
-response = requests.get(f"{BASE_URL}/cost-of-living/compare",
-    params={
-        "user_id": user_id,
-        "city_name": "San Francisco"
-    })
-
-comparison = response.json()
-print(f"City: {comparison['city']}")
-print(f"Status: {comparison['overall_status']}")
-for insight in comparison["insights"]:
-    print(f"  • {insight}")
-```
-
-**For more examples, see [CODE_SAMPLES.md](CODE_SAMPLES.md)**
+### 📈 Analytics
+- Category spending breakdown
+- Monthly/weekly trends
+- Budget vs actual comparison
+- Spending calendar heatmap
 
 ---
 
 ## 📂 Project Structure
 
 ```
-backend/
-├── api/               # REST endpoints
-│   ├── auth.py       # Authentication (JWT)
-│   ├── expenses.py   # Expense management
-│   ├── budgets.py    # Budget tracking
-│   ├── voice.py      # Voice input service
-│   └── cost_of_living.py  # External API
-├── llm/              # LLM integration
-│   ├── client.py     # Multi-provider LLM
-│   ├── pipeline.py   # Two-LLM orchestration
-│   ├── prompts.py    # Prompt templates
-│   └── schemas.py    # JSON schemas
-├── database/         # Data layer
-│   └── client.py     # Supabase wrapper
-└── utils/            # Utilities
-    └── logger.py     # Logging
+/
+├── src/app/                    # React frontend
+│   ├── components/             # UI components
+│   ├── utils/                  # Client utilities
+│   └── App.tsx                 # Main app component
+├── backend/                    # Python backend
+│   ├── api/                    # REST endpoints
+│   ├── llm/                    # LLM integration layer
+│   ├── database/               # Supabase client
+│   └── main.py                 # FastAPI entry point
+├── docs/                       # Documentation archive
+│   ├── ARCHITECTURE.md         # System design
+│   ├── PROJECT_EVALUATION.md  # Milestone tracking
+│   ├── RAPIDAPI_SETUP.md      # API configuration guide
+│   └── [8 more docs]
+├── database_schema.sql         # PostgreSQL schema
+├── SETUP_GUIDE.md             # Installation instructions
+└── README.md                  # This file
 ```
 
-**See [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) for complete structure.**
+---
+
+## 🔧 Configuration
+
+### Environment Variables
+
+**Backend (.env):**
+```bash
+# Database
+SUPABASE_URL=https://xxx.supabase.co
+SUPABASE_KEY=your_supabase_anon_key
+
+# LLM
+GROQ_API_KEY=gsk_xxxxx
+
+# External APIs
+RAPIDAPI_KEY=your_rapidapi_key
+COST_API_PROVIDER=rapidapi
+
+# Server
+ENVIRONMENT=development
+DEBUG=True
+```
+
+**Frontend (auto-loads from backend):**
+- No separate .env needed for frontend
+- API base URL auto-configured
+
+### Database Setup
+
+1. Create Supabase project
+2. Run [database_schema.sql](database_schema.sql) in SQL Editor
+3. Enable Row Level Security (RLS)
+4. Note your project URL and anon key
+
+**Schema includes:**
+- `users` - Authentication
+- `expenses` - Transaction records
+- `budgets` - Spending limits
+- Triggers for `updated_at` timestamps
 
 ---
 
-## 🛠️ Technology Stack
+## 🎨 UI Highlights
 
-| Component | Technology | Cost |
-|-----------|-----------|------|
-| **Backend** | FastAPI + Python | FREE |
-| **Database** | Supabase (PostgreSQL) | FREE (500MB) |
-| **LLM** | Ollama / Groq | FREE (unlimited/1M tokens) |
-| **Speech-to-Text** | OpenAI Whisper | FREE (local) |
-| **Hosting** | Railway / Render | FREE (500MB RAM) |
-| **Total** | | **$0/month** 🎉 |
+### 1. Companion Selection
+- 4 animated avatars to choose from
+- Friendship meter (builds with consistent usage)
+- Mood indicator (happy/worried/excited)
 
----
+### 2. Spending Form
+- **Quick Add**: Natural language or receipt upload
+- **Manual Entry**: Traditional form (amount/category/date)
+- Side-by-side buttons for optimal workflow
+- Real-time validation
 
-## 📊 Features & Milestones
+### 3. Calendar View
+- Color-coded by spending amount:
+  - 🟢 Green: $0-20
+  - 🟡 Yellow: $20-50
+  - 🟠 Orange: $50-100
+  - 🔴 Red: $100+
+- Inline category emojis + amounts
+- Hover for full breakdown
 
-### ✅ Completed Milestones (11/11)
-
-| Milestone | Status | Implementation |
-|-----------|--------|----------------|
-| LLM Integration | ✅ | Multi-provider (Ollama/Groq/OpenAI) |
-| Prompt Design | ✅ | Two-stage with examples |
-| Structured Outputs | ✅ | JSON Schema + Pydantic |
-| Function Calling | ✅ | Validated execution |
-| Multimodal Input | ✅ | Text + Voice (Whisper) |
-| External API | ✅ | Cost-of-living integration |
-| Persistent Storage | ✅ | Supabase PostgreSQL |
-| Authentication | ✅ | Username + JWT |
-| Modular Architecture | ✅ | Clean, testable layers |
-| Error Handling | ✅ | Graceful degradation |
-| Deployment | ✅ | Multiple free options |
-
-**Overall Coverage: 100%**
-
-**See [PROJECT_EVALUATION.md](PROJECT_EVALUATION.md) for detailed evaluation.**
+### 4. AI Chat
+- City dropdown (54 US cities, alphabetized)
+- Auto-detects location via browser
+- Brief, emoji-rich responses
+- Related insights below answers
 
 ---
 
-## 🎓 Academic Use
+## 🚀 Deployment
 
-This project is designed for **graduate-level LLM application courses** and demonstrates:
+### Backend Options
 
-- ✅ **Prompt Engineering**: System prompts, few-shot learning, chain-of-thought
-- ✅ **LLM Orchestration**: Multi-model pipeline with validation
-- ✅ **Structured Outputs**: JSON schema-based function calling
-- ✅ **Software Architecture**: Clean, modular, production-ready code
-- ✅ **API Design**: RESTful endpoints with comprehensive documentation
-- ✅ **Error Handling**: Robust error management and logging
-- ✅ **Deployment**: Zero-cost production deployment
+**Railway (Recommended):**
+```bash
+railway login
+railway init
+railway up
+```
 
-**Suitable for:**
-- Course projects
-- Portfolio demonstrations
-- Research experiments
-- Production deployment (with testing)
+**Render:**
+- Connect GitHub repo
+- Set environment variables
+- Auto-deploys on push
+
+### Frontend Options
+
+**Vercel:**
+```bash
+vercel login
+vercel --prod
+```
+
+**Netlify:**
+- Connect GitHub
+- Build command: `npm run build`
+- Publish dir: `dist`
+
+**See:** [Deployment Guide](SETUP_GUIDE.md#deployment)
+
+---
+
+## 🧪 Testing
+
+```bash
+# Backend
+pytest tests/ -v --cov=backend
+
+# Frontend
+npm test
+
+# End-to-end
+npm run test:e2e
+```
 
 ---
 
@@ -281,148 +340,103 @@ This project is designed for **graduate-level LLM application courses** and demo
 
 | Document | Description |
 |----------|-------------|
-| [ARCHITECTURE.md](ARCHITECTURE.md) | System architecture & design diagrams |
 | [SETUP_GUIDE.md](SETUP_GUIDE.md) | Complete installation & troubleshooting |
-| [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) | Step-by-step development roadmap |
-| [PROJECT_EVALUATION.md](PROJECT_EVALUATION.md) | Milestone coverage & grading |
-| [CODE_SAMPLES.md](CODE_SAMPLES.md) | Usage examples & API snippets |
-| [PROJECT_STRUCTURE.md](PROJECT_STRUCTURE.md) | File organization & dependencies |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture diagrams |
+| [docs/PROJECT_EVALUATION.md](docs/PROJECT_EVALUATION.md) | Milestone coverage & grading rubric |
+| [docs/RAPIDAPI_SETUP.md](docs/RAPIDAPI_SETUP.md) | Cost-of-living API configuration |
+| [docs/CODE_SAMPLES.md](docs/CODE_SAMPLES.md) | API usage examples |
+| [database_schema.sql](database_schema.sql) | PostgreSQL schema with RLS |
 
 ---
 
-## 🧪 Testing
+## 🔒 Security
 
-```bash
-# Install test dependencies
-pip install pytest pytest-asyncio httpx
+### Implemented
+✅ JWT authentication  
+✅ Row-level security (Supabase RLS)  
+✅ Input validation (Pydantic)  
+✅ SQL injection prevention (parameterized queries)  
+✅ Fixed search_path vulnerability in triggers  
 
-# Run tests (when implemented)
-pytest tests/ -v
-
-# Test specific module
-pytest tests/test_llm_pipeline.py -v
-
-# With coverage
-pytest tests/ --cov=backend --cov-report=html
-```
-
----
-
-## 🚀 Deployment
-
-### Option 1: Railway (Recommended)
-
-```bash
-# Install Railway CLI
-npm install -g @railway/cli
-
-# Login and deploy
-railway login
-railway init
-railway up
-```
-
-### Option 2: Docker
-
-```bash
-# Build image
-docker build -t expense-tracker .
-
-# Run container
-docker run -p 8000:8000 --env-file .env expense-tracker
-```
-
-### Option 3: Render / Vercel
-
-See [SETUP_GUIDE.md#deployment](SETUP_GUIDE.md#deployment) for detailed instructions.
-
----
-
-## 🔒 Security Notes
-
-⚠️ **Important for Production:**
-
-1. **Authentication**: Current implementation uses username-only for simplicity. For production:
-   - Add password hashing (bcrypt)
-   - Implement OAuth (Google, GitHub)
-   - Use HTTPS only
-   
-2. **API Keys**: Never commit `.env` file to version control
-
-3. **Rate Limiting**: Add rate limiting middleware for production
-
-4. **CORS**: Configure allowed origins properly
+### Production Recommendations
+- Add password hashing (bcrypt)
+- Enable HTTPS only
+- Rate limiting middleware
+- CORS whitelist specific origins
+- API key rotation policy
 
 ---
 
 ## 🤝 Contributing
 
-This is an educational project. Contributions welcome!
+This is an academic project. For local improvements:
 
-```bash
-# Fork the repository
-# Create feature branch
-git checkout -b feature/amazing-feature
-
-# Commit changes
-git commit -m "Add amazing feature"
-
-# Push and create PR
-git push origin feature/amazing-feature
-```
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m "Add amazing feature"`
+4. Push: `git push origin feature/amazing-feature`
+5. Open Pull Request
 
 ---
 
 ## 📧 Support
 
-For issues or questions:
+**Troubleshooting:**
 1. Check [SETUP_GUIDE.md](SETUP_GUIDE.md) troubleshooting section
-2. Review API docs at http://localhost:8000/docs
-3. Check logs in `logs/app.log`
-4. Open a GitHub issue
+2. Review API docs: http://localhost:8000/docs
+3. Check backend logs: `backend/logs/app.log`
+4. Verify environment variables loaded correctly
+
+**Common Issues:**
+- CORS errors → Check frontend proxy config in `vite.config.ts`
+- 401 errors → Token expired, re-login
+- OCR not working → Check Groq API key and rate limits
+- Cities not loading → Verify RapidAPI key configured
 
 ---
 
 ## 📜 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is provided for educational purposes.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **OpenAI Whisper** - Speech-to-text
-- **Ollama** - Local LLM inference
-- **Groq** - Fast LLM API
-- **Supabase** - Backend as a Service
-- **FastAPI** - Modern Python web framework
+- **Groq** - Fast LLM inference
+- **Supabase** - Backend infrastructure
+- **RapidAPI** - Cost-of-living data
+- **Radix UI** - Accessible components
+- **Tailwind CSS** - Rapid styling
+- **FastAPI** - Modern Python framework
+- **Vite** - Lightning-fast dev server
 
 ---
 
-## 📊 Project Stats
+## 📊 Project Metrics
 
-- **Lines of Code**: ~3,500+
-- **API Endpoints**: 20+
+- **Total Lines of Code**: ~4,500+
+- **Frontend Components**: 15+
+- **Backend Endpoints**: 25+
 - **Database Tables**: 5
-- **Documentation Pages**: 6
-- **Test Coverage**: Infrastructure ready
-- **Deployment Options**: 4
-- **Total Cost**: $0 💚
+- **Supported Cities**: 54
+- **Pet Personalities**: 4
+- **Documentation Pages**: 10+
 
 ---
 
 ## 🎯 Quick Links
 
+- 🌐 [Live Demo](#) (Add your deployment URL)
 - 📖 [API Documentation](http://localhost:8000/docs)
-- 🏗️ [Architecture Guide](ARCHITECTURE.md)
-- 🚀 [Setup Instructions](SETUP_GUIDE.md)
-- 💡 [Code Examples](CODE_SAMPLES.md)
-- ✅ [Project Evaluation](PROJECT_EVALUATION.md)
+- 🏗️ [Architecture](docs/ARCHITECTURE.md)
+- 🚀 [Setup Guide](SETUP_GUIDE.md)
+- 💬 [Report Issue](#)
 
 ---
 
-**Built with ❤️ for LLM Applications Course**
+**Built with ❤️ for Personal Finance Management**
 
-**Status:** ✅ Production Ready  
-**Version:** 1.0.0  
-**Last Updated:** February 2026
+**Version:** 2.0.0  
+**Last Updated:** February 15, 2026  
+**Status:** ✅ Production Ready

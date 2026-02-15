@@ -81,9 +81,11 @@ class Settings(BaseSettings):
     # ============================================
     # Cost of Living API
     # ============================================
-    # Numbeo API (requires manual scraping or paid plan)
-    # Alternative: Use Teleport API (free)
-    COST_API_PROVIDER: str = Field(default="teleport", env="COST_API_PROVIDER")  # "numbeo" or "teleport"
+    # RapidAPI - Cost of Living and Prices API
+    RAPIDAPI_KEY: Optional[str] = Field(default=None, env="RAPIDAPI_KEY")
+    COST_API_PROVIDER: str = Field(default="rapidapi", env="COST_API_PROVIDER")
+    
+    # Legacy providers
     NUMBEO_API_KEY: Optional[str] = Field(None, env="NUMBEO_API_KEY")
     TELEPORT_API_URL: str = "https://api.teleport.org/api/urban_areas/"
     

@@ -1,12 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "motion/react";
-import { Send, Sparkles, Heart } from "lucide-react";
+import { Send, Sparkles, Heart, MapPin } from "lucide-react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { ScrollArea } from "./ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { FriendshipStatus, updateLastActivity } from "./FriendshipStatus";
+import { Alert, AlertDescription } from "./ui/alert";
+import { FriendshipStatus } from "./FriendshipStatus";
 
 import penguinHappy from "../../assets/fbba302188e04ca2d593f3e940a704e23fb6ce1a.png";
 import penguinWorried from "../../assets/14f5b24ae0b95c5793fe4ce907a3872db569858e.png";
@@ -15,17 +16,15 @@ import dragonHappy from "../../assets/835e6fe3cc0ed512b0f3ba25f92556132c86ca20.p
 import dragonSad from "../../assets/de0eae5ba109e1402e185ce935a0879c15f13c17.png";
 import capybaraHappy from "../../assets/69a2f1a32bd4fa80f69d66d834fd908ee5f50ad6.png";
 import capybaraStressed from "../../assets/aa21c86fb48770aeb915e1b7b935989521daa798.png";
-import capybaraCalm from "../../assets/3169bd69bd5f0eaf252ff9771e2a6db105ea904c.png";
 import catHappy from "../../assets/42b57efd4a1c816f85ea6c44dd59193061d242ae.png";
 import catSad from "../../assets/0dc12595ce0fcafab901ae360f2da8807fe74d2c.png";
-
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 interface Message {
   id: string;
   text: string;
   sender: "user" | "buddy";
   timestamp: Date;
+  insights?: string[];
 }
 
 interface BudgetBuddyProps {
@@ -39,60 +38,57 @@ interface BudgetBuddyProps {
   categoryTotals: { [key: string]: number };
 }
 
-/* ================= GEMINI CHAT ================= */
+/* ================= AI ADVISOR WITH LOCATION ================= */
 
-async function chatWithGemini(messages: Message[], context: string, petType: 'penguin' | 'dragon' | 'capybara' | 'cat') {
-  const formatted = messages.map((m) => ({
-    role: m.sender === "user" ? "user" : "model",
-    parts: [{ text: m.text }],
-  }));
+async function askAdvisor(
+  question: string,
+  context: string,
+  petType: 'penguin' | 'dragon' | 'capybara' | 'cat',
+  city: string | null,
+  friendshipLevel: number,
+  mood: string
+) {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('Not authenticated');
+  }
 
-  const petPersonality = petType === 'penguin'
-    ? "You are Penny the Penguin 🐧, a friendly and warm budgeting assistant. Keep replies short, cheerful, and practical."
-    : petType === 'dragon'
-    ? "You are Esper the Dragon 🐉, a wise and enthusiastic budgeting guardian. Keep replies short, magical, and inspiring with a bit of dragon flair."
-    : petType === 'cat'
-    ? "You are Mochi the Cat 🐱, a playful and sweet budgeting assistant. Keep replies short, cute, and encouraging with a bit of cat charm."
-    : "You are Capy the Capybara 🦫, a calm and thoughtful budgeting buddy. Keep replies short, relaxed, and helpful.";
+  // Parse category totals from context
+  const categoryMatch = context.match(/Category totals:\n([\s\S]+?)\n\n/);
+  const categoryTotals = categoryMatch ? JSON.parse(categoryMatch[1]) : {};
 
-  // Inject system + budget context
-  formatted.unshift({
-    role: "user",
-    parts: [
-      {
-        text: `${petPersonality}
+  const requestBody = {
+    question,
+    city: city || undefined,
+    context: {
+      budget: context.match(/Budget: \$(\d+)/)?.[1],
+      totalSpent: context.match(/Total spent: \$(\d+)/)?.[1],
+      categoryTotals
+    },
+    friendship_level: friendshipLevel,
+    mood,
+    pet_type: petType
+  };
 
-Current user context:
-${context}
-`,
-      },
-    ],
+  const res = await fetch('http://localhost:8000/api/v1/advisor/ask', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(requestBody)
   });
 
-  const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        contents: formatted,
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 512,
-        },
-      }),
-    }
-  );
+  if (!res.ok) {
+    const error = await res.json().catch(() => ({ detail: 'Failed to get advice' }));
+    throw new Error(error.detail || 'Failed to get advice');
+  }
 
   const data = await res.json();
-
-  const petName = petType === 'penguin' ? 'Penny' : petType === 'dragon' ? 'Esper' : petType === 'cat' ? 'Mochi' : 'Capy';
-  return (
-    data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-    `Sorry — ${petName} got tongue-tied 😅`
-  );
+  return {
+    answer: data.answer,
+    insights: data.related_insights || []
+  };
 }
 
 /* ================= COMPONENT ================= */
@@ -109,11 +105,166 @@ export function BudgetBuddy({
   });
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
+  const [city, setCity] = useState<string>(() => {
+    return localStorage.getItem('userCity') || 'Charlotte';
+  });
   const [buddyMood, setBuddyMood] = useState<"happy" | "worried" | "excited">(
     "happy"
   );
+  const [friendshipLevel, setFriendshipLevel] = useState(100);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const [petAnimation, setPetAnimation] = useState(0);
+
+  // USA Cities for dropdown
+  const usCities = [
+    "Albuquerque",
+    "Anchorage",
+    "Atlanta",
+    "Austin",
+    "Baltimore",
+    "Boston",
+    "Charlotte",
+    "Chicago",
+    "Cincinnati",
+    "Cleveland",
+    "Colorado Springs",
+    "Columbus",
+    "Dallas",
+    "Denver",
+    "Detroit",
+    "El Paso",
+    "Fort Worth",
+    "Fresno",
+    "Honolulu",
+    "Houston",
+    "Indianapolis",
+    "Jacksonville",
+    "Kansas City",
+    "Las Vegas",
+    "Long Beach",
+    "Los Angeles",
+    "Louisville",
+    "Memphis",
+    "Mesa",
+    "Miami",
+    "Milwaukee",
+    "Minneapolis",
+    "Nashville",
+    "New Orleans",
+    "New York",
+    "Oakland",
+    "Oklahoma City",
+    "Omaha",
+    "Philadelphia",
+    "Phoenix",
+    "Pittsburgh",
+    "Portland",
+    "Raleigh",
+    "Sacramento",
+    "San Antonio",
+    "San Diego",
+    "San Francisco",
+    "San Jose",
+    "Seattle",
+    "Tampa",
+    "Tucson",
+    "Tulsa",
+    "Virginia Beach",
+    "Washington DC"
+  ];
+
+  /* ===== Detect Current Location ===== */
+  
+  useEffect(() => {
+    const savedCity = localStorage.getItem('userCity');
+    if (savedCity && usCities.includes(savedCity)) {
+      setCity(savedCity);
+    } else if ('geolocation' in navigator) {
+      // Try to detect location
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const { latitude, longitude } = position.coords;
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`
+            );
+            const data = await response.json();
+            const detectedCity = data.address?.city || data.address?.town;
+            
+            // Match to closest city in our list
+            if (detectedCity) {
+              const match = usCities.find(c => 
+                c.toLowerCase().includes(detectedCity.toLowerCase()) ||
+                detectedCity.toLowerCase().includes(c.toLowerCase())
+              );
+              if (match) {
+                setCity(match);
+                localStorage.setItem('userCity', match);
+              } else {
+                // No match found, default to Charlotte
+                setCity('Charlotte');
+                localStorage.setItem('userCity', 'Charlotte');
+              }
+            } else {
+              // No city detected, default to Charlotte
+              setCity('Charlotte');
+              localStorage.setItem('userCity', 'Charlotte');
+            }
+          } catch (err) {
+            console.log('Location detection failed, using Charlotte:', err);
+            setCity('Charlotte');
+            localStorage.setItem('userCity', 'Charlotte');
+          }
+        },
+        (error) => {
+          console.log('Geolocation denied, using Charlotte:', error);
+          setCity('Charlotte');
+          localStorage.setItem('userCity', 'Charlotte');
+        }
+      );
+    } else {
+      // Geolocation not available, default to Charlotte
+      if (!savedCity) {
+        setCity('Charlotte');
+        localStorage.setItem('userCity', 'Charlotte');
+      }
+    }
+  }, []);
+  
+  /* ===== Save City ===== */
+  
+  useEffect(() => {
+    if (city) {
+      localStorage.setItem('userCity', city);
+    }
+  }, [city]);
+
+  /* ===== Calculate Friendship Level ===== */
+  
+  useEffect(() => {
+    const calculateFriendship = () => {
+      const lastActivity = localStorage.getItem('lastActivityDate');
+      const now = new Date();
+      const lastDate = lastActivity ? new Date(lastActivity) : now;
+      const daysSinceActivity = Math.floor((now.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24));
+
+      const thresholds = {
+        capybara: 30,
+        dragon: 60,
+        cat: 120,
+        penguin: 240
+      };
+
+      const threshold = thresholds[petType];
+      const level = Math.max(0, Math.min(100, 100 - (daysSinceActivity / threshold) * 100));
+      setFriendshipLevel(Math.round(level));
+    };
+
+    calculateFriendship();
+    const interval = setInterval(calculateFriendship, 60000);
+    return () => clearInterval(interval);
+  }, [petType]);
 
   /* ===== Save Pet Selection ===== */
   
@@ -160,13 +311,15 @@ export function BudgetBuddy({
   /* ===== Initial Greeting ===== */
 
   useEffect(() => {
+    const locationHint = city ? ` I see you're in ${city}! 📍` : " Set your city below for location-specific advice! 🗺️";
+    
     const greetingText = petType === 'penguin'
-      ? "Hi! I'm Penny 🐧 — your budgeting buddy. Ask me anything about your spending!"
+      ? `Hi! I'm Penny 🐧 — your budgeting buddy.${locationHint} Ask me anything about your spending or local costs!`
       : petType === 'dragon'
-      ? "Greetings! I'm Esper 🐉 — your wise budget guardian. Ask me anything about your treasure hoard!"
+      ? `Greetings! I'm Esper 🐉 — your wise budget guardian.${locationHint} Ask me about your treasure hoard or local expenses!`
       : petType === 'cat'
-      ? "Hello! I'm Mochi 🐱 — your playful budgeting assistant. Ask me anything about your finances!"
-      : "Hello! I'm Capy 🦫 — your calm budgeting buddy. Ask me anything about your finances!";
+      ? `Hello! I'm Mochi 🐱 — your playful budgeting assistant.${locationHint} Ask me about your finances or local deals!`
+      : `Hello! I'm Capy 🦫 — your calm budgeting buddy.${locationHint} Ask me about your finances or cost of living!`;
     
     setMessages([
       {
@@ -176,16 +329,17 @@ export function BudgetBuddy({
         timestamp: new Date(),
       },
     ]);
-  }, [petType]);
+  }, [petType, city]);
 
-  /* ===== Auto Scroll (only on new messages, not on pet change) ===== */
+  /* ===== Auto Scroll within chat only (prevent page scroll) ===== */
 
   const prevMessageLengthRef = useRef(messages.length);
   
   useEffect(() => {
-    // Only scroll if a new message was added (not when messages were reset)
-    if (messages.length > prevMessageLengthRef.current) {
-      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    // Only scroll within ScrollArea, not the entire page
+    if (messages.length > prevMessageLengthRef.current && scrollRef.current) {
+      // Scroll to bottom of the chat without affecting page scroll
+      scrollRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
     prevMessageLengthRef.current = messages.length;
   }, [messages]);
@@ -206,6 +360,9 @@ export function BudgetBuddy({
     setMessages(updated);
     setInput("");
     setPetAnimation((p) => p + 1);
+    
+    // Keep focus on input
+    setTimeout(() => inputRef.current?.focus(), 100);
 
     const context = `
 Budget: $${budget}
@@ -220,24 +377,33 @@ ${JSON.stringify(recentExpenses.slice(0, 5), null, 2)}
 `;
 
     try {
-      const reply = await chatWithGemini(updated, context, petType);
+      const result = await askAdvisor(
+        input,
+        context,
+        petType,
+        city || null,
+        friendshipLevel,
+        buddyMood
+      );
 
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
-          text: reply,
+          text: result.answer,
           sender: "buddy",
           timestamp: new Date(),
+          insights: result.insights
         },
       ]);
-    } catch {
+    } catch (error: any) {
       const petName = getPetName();
+      const errorMessage = error.message || "Couldn't reach the server";
       setMessages((prev) => [
         ...prev,
         {
           id: Date.now().toString(),
-          text: `Oops — ${petName} couldn't reach Gemini 😢`,
+          text: `Oops — ${petName} couldn't help right now. ${errorMessage} 😢`,
           sender: "buddy",
           timestamp: new Date(),
         },
@@ -295,14 +461,8 @@ ${JSON.stringify(recentExpenses.slice(0, 5), null, 2)}
 
   const getPetName = () => petType === 'penguin' ? 'Penny' : petType === 'dragon' ? 'Esper' : petType === 'cat' ? 'Mochi' : 'Capy';
   const getPetTitle = () => petType === 'penguin' ? 'Penny the Penguin' : petType === 'dragon' ? 'Esper the Dragon' : petType === 'cat' ? 'Mochi the Cat' : 'Capy the Capybara';
-  const getPetIcon = () => petType === 'penguin' ? '🐧' : petType === 'dragon' ? '🐉' : petType === 'cat' ? '🐱' : '🦫';
 
   const handlePetClick = () => setPetAnimation((p) => p + 1);
-
-  const handlePetChange = (newPet: 'penguin' | 'dragon' | 'capybara' | 'cat') => {
-    setPetType(newPet);
-    setPetAnimation((p) => p + 1);
-  };
 
   /* ================= UI ================= */
 
@@ -353,27 +513,74 @@ ${JSON.stringify(recentExpenses.slice(0, 5), null, 2)}
 
       <Card className={`border-2 ${petType === 'penguin' ? 'border-cyan-300' : petType === 'dragon' ? 'border-purple-300' : petType === 'cat' ? 'border-pink-300' : 'border-green-300'} bg-white/85 shadow-lg`}>
         <CardHeader>
-          <CardTitle>Chat with {getPetName()}</CardTitle>
+          <CardTitle>Ask Your AI Advisor</CardTitle>
+          <p className="text-xs text-gray-500 mt-1">Get location-aware financial advice from {getPetName()}!</p>
         </CardHeader>
 
         <CardContent className="space-y-3">
+          {/* City Dropdown */}
+          <div className="flex items-center gap-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <MapPin className="h-4 w-4 text-blue-600 flex-shrink-0" />
+            <Select value={city} onValueChange={setCity}>
+              <SelectTrigger className="bg-white">
+                <SelectValue placeholder="Select your city..." />
+              </SelectTrigger>
+              <SelectContent>
+                {usCities.map((cityName) => (
+                  <SelectItem key={cityName} value={cityName}>
+                    {cityName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Example Questions */}
+          {messages.length === 1 && (
+            <Alert className="bg-purple-50 border-purple-200">
+              <Sparkles className="h-4 w-4 text-purple-600" />
+              <AlertDescription>
+                <p className="text-sm font-medium text-purple-900 mb-1">Try asking:</p>
+                <ul className="text-xs text-gray-700 space-y-1">
+                  <li>💰 "Is it smarter to buy or rent in {city || 'my city'}?"</li>
+                  <li>🍽️ "Which are budget friendly restaurants in {city || 'my city'}?"</li>
+                  <li>📊 "How does my spending compare to {city || 'my city'} average?"</li>
+                  <li>🏠 "What's the cost of living in {city || 'Seattle'}?"</li>
+                </ul>
+              </AlertDescription>
+            </Alert>
+          )}
+
           <ScrollArea className="h-64 border rounded p-3">
             {messages.map((m) => (
-              <div
-                key={m.id}
-                className={`mb-2 flex ${
-                  m.sender === "user" ? "justify-end" : "justify-start"
-                }`}
-              >
+              <div key={m.id} className="mb-3">
                 <div
-                  className={`px-3 py-2 rounded-xl max-w-[80%] ${
-                    m.sender === "user"
-                      ? "bg-blue-500 text-white"
-                      : "bg-white border"
+                  className={`flex ${
+                    m.sender === "user" ? "justify-end" : "justify-start"
                   }`}
                 >
-                  {m.text}
+                  <div
+                    className={`px-3 py-2 rounded-xl max-w-[85%] ${
+                      m.sender === "user"
+                        ? "bg-blue-500 text-white"
+                        : "bg-white border shadow-sm"
+                    }`}
+                  >
+                    <p className="text-sm whitespace-pre-wrap">{m.text}</p>
+                  </div>
                 </div>
+                
+                {/* Show insights if available */}
+                {m.insights && m.insights.length > 0 && (
+                  <div className="mt-2 ml-2 space-y-1">
+                    {m.insights.map((insight, idx) => (
+                      <div key={idx} className="flex items-start gap-2 text-xs text-gray-600 bg-yellow-50 border border-yellow-200 rounded p-2">
+                        <span className="text-yellow-600">💡</span>
+                        <span>{insight}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
             <div ref={scrollRef} />
@@ -387,9 +594,11 @@ ${JSON.stringify(recentExpenses.slice(0, 5), null, 2)}
             className="flex gap-2"
           >
             <Input
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={`Ask ${getPetName()} anything...`}
+              placeholder={city ? `Ask about ${city}...` : `Ask ${getPetName()} anything...`}
+              autoFocus
             />
 
             <Button type="submit" size="icon">

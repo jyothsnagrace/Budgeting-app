@@ -243,11 +243,30 @@ class VoiceInputService:
 _voice_service: Optional[VoiceInputService] = None
 
 
-def get_voice_service(mode: str = "local") -> VoiceInputService:
-    """Get voice input service singleton"""
+def get_voice_service(mode: str = None) -> VoiceInputService:
+    """
+    Get voice input service singleton.
+    
+    Auto-detects best available mode if not specified:
+    1. Groq (if GROQ_API_KEY set) - FREE + Fast
+    2. OpenAI (if OPENAI_API_KEY set) - Paid
+    3. Local (if whisper installed) - FREE + Slow
+    """
     global _voice_service
     
-    if _voice_service is None:
+    # Auto-detect mode if not specified
+    if mode is None:
+        if hasattr(settings, 'GROQ_API_KEY') and settings.GROQ_API_KEY:
+            mode = "groq"
+            logger.info("Auto-selected Groq for voice transcription (FREE)")
+        elif hasattr(settings, 'OPENAI_API_KEY') and settings.OPENAI_API_KEY:
+            mode = "openai"
+            logger.info("Auto-selected OpenAI for voice transcription")
+        else:
+            mode = "local"
+            logger.info("Auto-selected local Whisper for voice transcription")
+    
+    if _voice_service is None or _voice_service.mode != mode:
         _voice_service = VoiceInputService(mode=mode)
     
     return _voice_service

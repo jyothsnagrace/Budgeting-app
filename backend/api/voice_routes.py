@@ -39,24 +39,27 @@ class VoiceExpenseRequest(BaseModel):
 
 @router.post("/transcribe", response_model=TranscriptionResponse)
 async def transcribe_audio(
-    audio_file: UploadFile = File(...),
-    mode: str = "local"
+    audio_file: UploadFile = File(...)
 ):
     """
     Transcribe uploaded audio file to text.
     
     Supports: wav, mp3, m4a, webm, ogg
     
+    Automatically detects best transcription method:
+    - Groq API (if GROQ_API_KEY set) - FREE + Fast
+    - OpenAI API (if OPENAI_API_KEY set) - Paid
+    - Local Whisper (fallback) - FREE + Requires installation
+    
     Parameters:
         audio_file: Audio file to transcribe
-        mode: Transcription mode (local, groq, openai)
     """
     import time
     start_time = time.time()
     
     try:
-        # Get voice service
-        voice_service = get_voice_service(mode)
+        # Get voice service (auto-detects best mode)
+        voice_service = get_voice_service()
         
         # Read audio bytes
         audio_bytes = await audio_file.read()
@@ -65,7 +68,7 @@ async def transcribe_audio(
         filename = audio_file.filename or "audio.wav"
         format = filename.split(".")[-1] if "." in filename else "wav"
         
-        logger.info(f"Transcribing audio file: {filename} ({len(audio_bytes)} bytes)")
+        logger.info(f"Transcribing audio file: {filename} ({len(audio_bytes)} bytes) using {voice_service.mode} mode")
         
         # Transcribe
         text = await voice_service.transcribe_audio_bytes(

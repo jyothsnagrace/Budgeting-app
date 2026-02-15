@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Sparkles, LogOut } from "lucide-react";
+import { formatDateToYYYYMMDD } from "./utils/dateUtils";
 import { Login } from "./components/Login";
 import { BudgetSummary } from "./components/BudgetSummary";
 import { SpendingForm } from "./components/SpendingForm";
@@ -35,10 +36,8 @@ export default function App() {
 
   // Budget and expense state
   const [budget, setBudget] = useState(2000);
-  const [isLoadingBudget, setIsLoadingBudget] = useState(false);
 
   const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [isLoadingExpenses, setIsLoadingExpenses] = useState(false);
 
   const [selectedPet, setSelectedPet] = useState<'penguin' | 'dragon' | 'capybara' | 'cat'>(() => {
     const saved = localStorage.getItem('selectedPet');
@@ -69,7 +68,6 @@ export default function App() {
     
     if (!userId || !token) return;
 
-    setIsLoadingBudget(true);
     try {
       const response = await fetch(
         `http://localhost:8000/api/v1/budgets/list?user_id=${userId}`,
@@ -90,8 +88,6 @@ export default function App() {
       }
     } catch (error) {
       console.error("Error loading budget:", error);
-    } finally {
-      setIsLoadingBudget(false);
     }
   };
 
@@ -102,7 +98,6 @@ export default function App() {
     
     if (!userId || !token) return;
 
-    setIsLoadingExpenses(true);
     try {
       const response = await fetch(
         `http://localhost:8000/api/v1/expenses/list?user_id=${userId}&limit=100`,
@@ -126,12 +121,10 @@ export default function App() {
       }
     } catch (error) {
       console.error("Error loading expenses:", error);
-    } finally {
-      setIsLoadingExpenses(false);
     }
   };
 
-  const handleLogin = (user: string, token: string) => {
+  const handleLogin = (user: string, _token: string) => {
     setUsername(user);
     setIsAuthenticated(true);
   };
@@ -217,8 +210,8 @@ export default function App() {
 
       const backendCategory = categoryMap[expenseData.category] || "other";
       
-      // Format date to YYYY-MM-DD
-      const formattedDate = new Date(expenseData.date).toISOString().split('T')[0];
+      // Format date to YYYY-MM-DD in local timezone (EST)
+      const formattedDate = formatDateToYYYYMMDD(new Date(expenseData.date));
 
       // Send to backend
       const response = await fetch("http://localhost:8000/api/v1/expenses/add-direct", {
@@ -383,6 +376,7 @@ export default function App() {
                   onUpdateBudget={handleUpdateBudget}
                 />
                 
+                {/* Expense Entry - Voice, Natural Language, or Manual */}
                 <SpendingForm onAddExpense={handleAddExpense} />
                 <SpendingGraph 
                   expenses={expenses}
