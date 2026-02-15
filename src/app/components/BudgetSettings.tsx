@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { API_URL } from '../../config';
 import {
   Dialog,
   DialogContent,
@@ -40,7 +41,7 @@ export function BudgetSettings({ currentBudget, onUpdateBudget }: BudgetSettings
         }
 
         // Save to backend
-        const response = await fetch('http://localhost:8000/api/v1/budgets/set', {
+        const response = await fetch(`${API_URL}/api/v1/budgets/set`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

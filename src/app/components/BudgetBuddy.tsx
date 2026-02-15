@@ -8,16 +8,17 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Alert, AlertDescription } from "./ui/alert";
 import { FriendshipStatus } from "./FriendshipStatus";
+import { API_URL } from "../../config";
 
-import penguinHappy from "../../assets/fbba302188e04ca2d593f3e940a704e23fb6ce1a.png";
-import penguinWorried from "../../assets/14f5b24ae0b95c5793fe4ce907a3872db569858e.png";
-import penguinExcited from "../../assets/38b0579ff87cabd0f427c06c7ea35d012c055d4d.png";
-import dragonHappy from "../../assets/835e6fe3cc0ed512b0f3ba25f92556132c86ca20.png";
-import dragonSad from "../../assets/de0eae5ba109e1402e185ce935a0879c15f13c17.png";
-import capybaraHappy from "../../assets/69a2f1a32bd4fa80f69d66d834fd908ee5f50ad6.png";
-import capybaraStressed from "../../assets/aa21c86fb48770aeb915e1b7b935989521daa798.png";
-import catHappy from "../../assets/42b57efd4a1c816f85ea6c44dd59193061d242ae.png";
-import catSad from "../../assets/0dc12595ce0fcafab901ae360f2da8807fe74d2c.png";
+import penguinHappy from "../../assets/penguin-happy.png";
+import penguinWorried from "../../assets/penguin-worried.png";
+import penguinExcited from "../../assets/penguin-excited.png";
+import dragonHappy from "../../assets/dragon-happy.png";
+import dragonSad from "../../assets/dragon-sad.png";
+import capybaraHappy from "../../assets/capybara-happy.png";
+import capybaraStressed from "../../assets/capybara-stressed.png";
+import catHappy from "../../assets/cat-happy.png";
+import catSad from "../../assets/cat-sad.png";
 
 interface Message {
   id: string;
@@ -70,7 +71,7 @@ async function askAdvisor(
     pet_type: petType
   };
 
-  const res = await fetch('http://localhost:8000/api/v1/advisor/ask', {
+  const res = await fetch(`${API_URL}/api/v1/advisor/ask`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

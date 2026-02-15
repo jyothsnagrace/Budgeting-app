@@ -37,7 +37,14 @@ class Settings(BaseSettings):
     API_HOST: str = Field(default="0.0.0.0", env="API_HOST")
     API_PORT: int = Field(default=8000, env="API_PORT")
     API_PREFIX: str = "/api/v1"
-    CORS_ORIGINS: list = ["http://localhost:3000", "http://localhost:5173"]
+    CORS_ORIGINS: list = [
+        "http://localhost:3000", 
+        "http://localhost:5173", 
+        "http://localhost:5174", 
+        "http://localhost:5175",
+        "https://budgeting-app-production-9da3.up.railway.app",
+        # Add your Vercel/Netlify URL here once deployed
+    ]
     
     # ============================================
     # Supabase Configuration

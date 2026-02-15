@@ -139,13 +139,17 @@ npm run dev
 ```
 /
 ├── README.md                  # Main project overview
-├── SETUP_GUIDE.md            # Detailed installation (this file)
-├── docs/
+├── docs/                      # Archived technical docs
 │   ├── README.md             # Documentation index
 │   ├── ARCHITECTURE.md       # System design diagrams
-│   ├── PROJECT_EVALUATION.md # Milestone coverage matrix
 │   ├── RAPIDAPI_SETUP.md     # API configuration guide
-│   └── [7 more technical docs]
+│   └── [7 more docs]
+├── docs2/                     # Current documentation
+│   ├── SETUP_GUIDE.md        # Detailed installation
+│   ├── QUICKSTART.md         # 5-minute guide (this file)
+│   ├── MILESTONE_5.md        # Tool calling integration
+│   ├── PROJECT_EVALUATION.md # Milestone coverage matrix
+│   └── [7 more docs]
 └── database_schema.sql       # PostgreSQL schema
 ```
 
@@ -247,8 +251,9 @@ npm install
 **Quick References:**
 - API Docs: http://localhost:8000/docs
 - Backend Logs: `backend/logs/app.log`
-- Database Schema: [database_schema.sql](database_schema.sql)
-- Architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- Database Schema: [database_schema.sql](../database_schema.sql)
+- Architecture: [docs2/ARCHITECTURE.md](ARCHITECTURE.md)
+- Milestone 5: [docs2/MILESTONE_5.md](MILESTONE_5.md)
 
 **For detailed troubleshooting:** See [SETUP_GUIDE.md](SETUP_GUIDE.md#troubleshooting)
 

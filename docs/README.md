@@ -30,7 +30,7 @@ This folder contains archived development documentation and internal guides.
 
 **For Users:**
 - Start with [../README.md](../README.md) - Main project overview
-- Then [../SETUP_GUIDE.md](../SETUP_GUIDE.md) - Installation instructions
+- Then [../docs2/SETUP_GUIDE.md](../docs2/SETUP_GUIDE.md) - Installation instructions
 
 **For Developers:**
 1. [ARCHITECTURE.md](ARCHITECTURE.md) - Understand the system design
@@ -40,6 +40,7 @@ This folder contains archived development documentation and internal guides.
 **For Evaluators:**
 - [PROJECT_EVALUATION.md](PROJECT_EVALUATION.md) - Milestone completion matrix
 - [PROJECT_COMPLETION.md](PROJECT_COMPLETION.md) - Final status report
+- [../docs2/MILESTONE_5.md](../docs2/MILESTONE_5.md) - Tool calling integration
 
 ---
 
@@ -47,7 +48,8 @@ This folder contains archived development documentation and internal guides.
 
 - **API Documentation**: http://localhost:8000/docs (when running)
 - **Database Schema**: [../database_schema.sql](../database_schema.sql)
-- **Environment Setup**: [../SETUP_GUIDE.md](../SETUP_GUIDE.md)
+- **Environment Setup**: [../docs2/SETUP_GUIDE.md](../docs2/SETUP_GUIDE.md)
+- **Quick Start Guide**: [../docs2/QUICKSTART.md](../docs2/QUICKSTART.md)
 
 ---
 

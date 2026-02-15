@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from './ui/alert';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { format } from 'date-fns';
 import { cn } from './ui/utils';
+import { API_URL } from '../../config';
 
 interface SpendingFormProps {
   onAddExpense: (expense: {
@@ -119,7 +120,7 @@ export function SpendingForm({ onAddExpense }: SpendingFormProps) {
       }
 
       // Parse expense details from text
-      const parseResponse = await fetch('http://localhost:8000/api/v1/expenses/parse', {
+      const parseResponse = await fetch(`${API_URL}/api/v1/expenses/parse`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -215,7 +216,7 @@ export function SpendingForm({ onAddExpense }: SpendingFormProps) {
 
       console.log('Uploading receipt:', file.name, file.size, 'bytes');
 
-      const response = await fetch('http://localhost:8000/api/v1/expenses/parse-receipt', {
+      const response = await fetch(`${API_URL}/api/v1/expenses/parse-receipt`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,

@@ -33,7 +33,7 @@ export function Login({ onLogin }: LoginProps) {
 
     try {
       const endpoint = isRegistering ? "/api/v1/auth/register" : "/api/v1/auth/login";
-      const response = await fetch(`http://localhost:8000${endpoint}`, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

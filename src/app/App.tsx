@@ -11,10 +11,11 @@ import { SpendingGraph } from "./components/SpendingGraph";
 import { SpendingCalendar } from "./components/SpendingCalendar";
 import { CompanionSelector } from "./components/CompanionSelector";
 import { updateLastActivity } from "./components/FriendshipStatus";
-import snowyBackground from "../assets/24c342c9b907dd7af46c17a7505a42b4711e2299.png";
-import dragonBackground from "../assets/37fa4f83743a018706213713ff43d568f0c96eaf.png";
-import capybaraBackground from "../assets/d21921f8a15a74720c7407c80f0c3278886fcea6.png";
-import catBackground from "../assets/a0e9233cd7bfbcb758aa16b4bb7865d422456acf.png";
+import { API_URL } from "../config";
+import snowyBackground from "../assets/background-snowy.png";
+import dragonBackground from "../assets/background-dragon.png";
+import capybaraBackground from "../assets/background-capybara.png";
+import catBackground from "../assets/background-cat.png";
 
 interface Expense {
   id: string;
@@ -70,7 +71,7 @@ export default function App() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/v1/budgets/list?user_id=${userId}`,
+        `${API_URL}/api/v1/budgets/list?user_id=${userId}`,
         {
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -100,7 +101,7 @@ export default function App() {
 
     try {
       const response = await fetch(
-        `http://localhost:8000/api/v1/expenses/list?user_id=${userId}&limit=100`,
+        `${API_URL}/api/v1/expenses/list?user_id=${userId}&limit=100`,
         {
           headers: {
             "Authorization": `Bearer ${token}`,
@@ -214,7 +215,7 @@ export default function App() {
       const formattedDate = formatDateToYYYYMMDD(new Date(expenseData.date));
 
       // Send to backend
-      const response = await fetch("http://localhost:8000/api/v1/expenses/add-direct", {
+      const response = await fetch(`${API_URL}/api/v1/expenses/add-direct`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

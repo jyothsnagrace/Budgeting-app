@@ -91,7 +91,7 @@ export function QuickVoiceAdd({ onExpenseAdded }: QuickVoiceAddProps) {
       const formData = new FormData();
       formData.append('audio', audioBlob, 'recording.webm');
 
-      const transcribeResponse = await fetch('http://localhost:8000/api/v1/voice/transcribe', {
+      const transcribeResponse = await fetch(`${API_URL}/api/v1/voice/transcribe`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -131,7 +131,7 @@ export function QuickVoiceAdd({ onExpenseAdded }: QuickVoiceAddProps) {
       }
 
       // Send to LLM expense extraction endpoint
-      const response = await fetch('http://localhost:8000/api/v1/expenses/add', {
+      const response = await fetch(`${API_URL}/api/v1/expenses/add`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

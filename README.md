@@ -57,7 +57,7 @@ backend/
     └── client.py              # Supabase PostgreSQL
 ```
 
-**Detailed diagrams:** [Architecture Documentation](docs/ARCHITECTURE.md)
+**Detailed diagrams:** [Architecture Documentation](docs2/ARCHITECTURE.md)
 
 ---
 
@@ -108,7 +108,7 @@ npm run dev
 - 📖 **API Docs**: http://localhost:8000/docs
 - ✅ **Health Check**: http://localhost:8000/health
 
-**Full setup instructions:** [Setup Guide](SETUP_GUIDE.md)
+**Full setup instructions:** [Setup Guide](docs2/SETUP_GUIDE.md)
 
 ---
 
@@ -209,6 +209,11 @@ Responses adapt based on:
 │   ├── ARCHITECTURE.md         # System design
 │   ├── PROJECT_EVALUATION.md  # Milestone tracking
 │   ├── RAPIDAPI_SETUP.md      # API configuration guide
+│   └── [7 more docs]
+├── docs2/                      # Updated documentation
+│   ├── SETUP_GUIDE.md         # Installation instructions
+│   ├── QUICKSTART.md          # 5-minute evaluator guide
+│   ├── MILESTONE_5.md         # Tool calling integration
 │   └── [8 more docs]
 ├── database_schema.sql         # PostgreSQL schema
 ├── SETUP_GUIDE.md             # Installation instructions
@@ -317,7 +322,7 @@ vercel --prod
 - Build command: `npm run build`
 - Publish dir: `dist`
 
-**See:** [Deployment Guide](SETUP_GUIDE.md#deployment)
+**See:** [Deployment Guide](docs2/SETUP_GUIDE.md#deployment)
 
 ---
 
@@ -340,11 +345,13 @@ npm run test:e2e
 
 | Document | Description |
 |----------|-------------|
-| [SETUP_GUIDE.md](SETUP_GUIDE.md) | Complete installation & troubleshooting |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture diagrams |
-| [docs/PROJECT_EVALUATION.md](docs/PROJECT_EVALUATION.md) | Milestone coverage & grading rubric |
-| [docs/RAPIDAPI_SETUP.md](docs/RAPIDAPI_SETUP.md) | Cost-of-living API configuration |
-| [docs/CODE_SAMPLES.md](docs/CODE_SAMPLES.md) | API usage examples |
+| [SETUP_GUIDE.md](docs2/SETUP_GUIDE.md) | Complete installation & troubleshooting |
+| [QUICKSTART.md](docs2/QUICKSTART.md) | 5-minute evaluator guide |
+| [MILESTONE_5.md](docs2/MILESTONE_5.md) | Tool calling integration (Assignment) |
+| [ARCHITECTURE.md](docs2/ARCHITECTURE.md) | Technical architecture diagrams |
+| [PROJECT_EVALUATION.md](docs2/PROJECT_EVALUATION.md) | Milestone coverage & grading rubric |
+| [RAPIDAPI_SETUP.md](docs/RAPIDAPI_SETUP.md) | Cost-of-living API configuration |
+| [CODE_SAMPLES.md](docs2/CODE_SAMPLES.md) | API usage examples |
 | [database_schema.sql](database_schema.sql) | PostgreSQL schema with RLS |
 
 ---
@@ -382,7 +389,7 @@ This is an academic project. For local improvements:
 ## 📧 Support
 
 **Troubleshooting:**
-1. Check [SETUP_GUIDE.md](SETUP_GUIDE.md) troubleshooting section
+1. Check [SETUP_GUIDE.md](docs2/SETUP_GUIDE.md) troubleshooting section
 2. Review API docs: http://localhost:8000/docs
 3. Check backend logs: `backend/logs/app.log`
 4. Verify environment variables loaded correctly
@@ -429,8 +436,9 @@ This project is provided for educational purposes.
 
 - 🌐 [Live Demo](#) (Add your deployment URL)
 - 📖 [API Documentation](http://localhost:8000/docs)
-- 🏗️ [Architecture](docs/ARCHITECTURE.md)
-- 🚀 [Setup Guide](SETUP_GUIDE.md)
+- 🏗️ [Architecture](docs2/ARCHITECTURE.md)
+- 🚀 [Setup Guide](docs2/SETUP_GUIDE.md)
+- 📝 [Milestone 5](docs2/MILESTONE_5.md)
 - 💬 [Report Issue](#)
 
 ---
