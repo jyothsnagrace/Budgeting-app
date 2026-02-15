@@ -103,7 +103,7 @@ class Settings(BaseSettings):
     # Authentication Settings
     # ============================================
     # Username-only auth (no password)
-    SESSION_SECRET_KEY: str = Field(default="your-secret-key-change-in-production", env="SESSION_SECRET_KEY")
+    SESSION_SECRET_KEY: str = Field(default="iHHZBMJnCyMceK91A6oThgmxRBNIJUS0UnEwHI6LXyY", env="SESSION_SECRET_KEY")
     SESSION_ALGORITHM: str = "HS256"
     SESSION_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
