@@ -26,7 +26,7 @@ class TwoLLMPipeline:
     
     def __init__(self):
         self.llm_client = get_llm_client()
-        logger.info"Initialized Two-LLM Pipeline")
+        logger.info("Initialized Two-LLM Pipeline")
     
     async def extract_expense_data(
         self,

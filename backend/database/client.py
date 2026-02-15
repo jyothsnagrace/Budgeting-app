@@ -76,6 +76,29 @@ class SupabaseClient:
             logger.error(f"Error creating user: {e}")
             raise
     
+    async def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get user by ID"""
+        try:
+            response = self.client.table("users").select("*").eq("id", user_id).execute()
+            if response.data and len(response.data) > 0:
+                return response.data[0]
+            return None
+        except Exception as e:
+            logger.error(f"Error fetching user by ID: {e}")
+            return None
+    
+    async def update_user_last_login(self, user_id: str) -> bool:
+        """Update user's last login timestamp"""
+        try:
+            from datetime import datetime
+            self.client.table("users").update({
+                "last_login": datetime.now().isoformat()
+            }).eq("id", user_id).execute()
+            return True
+        except Exception as e:
+            logger.error(f"Error updating last login: {e}")
+            return False
+    
     #============================================
     # Expense Operations
     # ============================================
@@ -238,4 +261,9 @@ class SupabaseClient:
 
 def get_db() -> SupabaseClient:
     """Get database client singleton"""
+    return SupabaseClient()
+
+
+async def get_database() -> SupabaseClient:
+    """Get database client singleton (async version for FastAPI dependency)"""
     return SupabaseClient()

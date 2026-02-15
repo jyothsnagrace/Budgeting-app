@@ -13,7 +13,7 @@ import time
 import logging
 
 from backend.config import settings, validate_config, print_config_summary
-# from backend.api import auth, expenses, budgets, voice, cost_of_living
+from backend.api import auth, expenses, budgets, voice_routes, cost_routes
 from backend.utils.logger import setup_logging
 
 # Setup logging
@@ -150,37 +150,36 @@ async def health_check():
 # ============================================
 # API Routers
 # ============================================
-# TODO: Uncomment as routers are implemented
 
-# app.include_router(
-#     auth.router,
-#     prefix=f"{settings.API_PREFIX}/auth",
-#     tags=["Authentication"]
-# )
-#
-# app.include_router(
-#     expenses.router,
-#     prefix=f"{settings.API_PREFIX}/expenses",
-#     tags=["Expenses"]
-# )
-#
-# app.include_router(
-#     budgets.router,
-#     prefix=f"{settings.API_PREFIX}/budgets",
-#     tags=["Budgets"]
-# )
-#
-# app.include_router(
-#     voice.router,
-#     prefix=f"{settings.API_PREFIX}/voice",
-#     tags=["Voice Input"]
-# )
-#
-# app.include_router(
-#     cost_of_living.router,
-#     prefix=f"{settings.API_PREFIX}/cost-of-living",
-#     tags=["Cost of Living"]
-# )
+app.include_router(
+    auth.router,
+    prefix=settings.API_PREFIX,
+    tags=["Authentication"]
+)
+
+app.include_router(
+    expenses.router,
+    prefix=settings.API_PREFIX,
+    tags=["Expenses"]
+)
+
+app.include_router(
+    budgets.router,
+    prefix=settings.API_PREFIX,
+    tags=["Budgets"]
+)
+
+app.include_router(
+    voice_routes.router,
+    prefix=settings.API_PREFIX,
+    tags=["Voice Input"]
+)
+
+app.include_router(
+    cost_routes.router,
+    prefix=settings.API_PREFIX,
+    tags=["Cost of Living"]
+)
 
 
 # ============================================

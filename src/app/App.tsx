@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Sparkles } from "lucide-react";
+import { Sparkles, LogOut } from "lucide-react";
+import { Login } from "./components/Login";
 import { BudgetSummary } from "./components/BudgetSummary";
 import { SpendingForm } from "./components/SpendingForm";
 import { ExpenseList } from "./components/ExpenseList";
@@ -23,25 +24,141 @@ interface Expense {
 }
 
 export default function App() {
-  const [budget, setBudget] = useState(() => {
-    const saved = localStorage.getItem("budget");
-    return saved ? parseFloat(saved) : 2000;
+  // Authentication state
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    return !!localStorage.getItem("token");
+  });
+  
+  const [username, setUsername] = useState(() => {
+    return localStorage.getItem("username") || "";
   });
 
-  const [expenses, setExpenses] = useState<Expense[]>(() => {
-    const saved = localStorage.getItem("expenses");
-    return saved ? JSON.parse(saved) : [];
-  });
+  // Budget and expense state
+  const [budget, setBudget] = useState(2000);
+  const [isLoadingBudget, setIsLoadingBudget] = useState(false);
+
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [isLoadingExpenses, setIsLoadingExpenses] = useState(false);
 
   const [selectedPet, setSelectedPet] = useState<'penguin' | 'dragon' | 'capybara' | 'cat'>(() => {
     const saved = localStorage.getItem('selectedPet');
     return (saved as 'penguin' | 'dragon' | 'capybara' | 'cat') || 'penguin';
   });
 
+  // Category mapping functions
+  const backendToFrontendCategory = (backendCat: string): string => {
+    const categoryMap: { [key: string]: string } = {
+      "food": "🍔 Food",
+      "transportation": "🚗 Transportation",
+      "entertainment": "🎬 Entertainment",
+      "shopping": "🛒 Shopping",
+      "housing": "🏠 Bills",
+      "utilities": "🏠 Bills",
+      "healthcare": "💊 Healthcare",
+      "education": "📚 Education",
+      "personal": "✨ Other",
+      "other": "✨ Other",
+    };
+    return categoryMap[backendCat.toLowerCase()] || "✨ Other";
+  };
+
+  // Load budget from backend
+  const loadBudget = async () => {
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
+    
+    if (!userId || !token) return;
+
+    setIsLoadingBudget(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/v1/budgets/list?user_id=${userId}`,
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        // Find the "total" budget
+        const totalBudget = data.budgets.find((b: any) => b.budget.category === 'total');
+        if (totalBudget) {
+          setBudget(totalBudget.budget.amount);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading budget:", error);
+    } finally {
+      setIsLoadingBudget(false);
+    }
+  };
+
+  // Load expenses from backend
+  const loadExpenses = async () => {
+    const userId = localStorage.getItem("userId");
+    const token = localStorage.getItem("token");
+    
+    if (!userId || !token) return;
+
+    setIsLoadingExpenses(true);
+    try {
+      const response = await fetch(
+        `http://localhost:8000/api/v1/expenses/list?user_id=${userId}&limit=100`,
+        {
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const loadedExpenses = data.expenses.map((exp: any) => ({
+          id: exp.id,
+          amount: exp.amount,
+          category: backendToFrontendCategory(exp.category),
+          description: exp.description,
+          date: exp.date,
+        }));
+        setExpenses(loadedExpenses);
+      }
+    } catch (error) {
+      console.error("Error loading expenses:", error);
+    } finally {
+      setIsLoadingExpenses(false);
+    }
+  };
+
+  const handleLogin = (user: string, token: string) => {
+    setUsername(user);
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("username");
+    localStorage.removeItem("userId");
+    setIsAuthenticated(false);
+    setUsername("");
+    setExpenses([]);
+  };
+
+  // Load budget and expenses when user logs in
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadBudget();
+      loadExpenses();
+    }
+  }, [isAuthenticated]);
+
   // Update activity on app load
   useEffect(() => {
-    updateLastActivity();
-  }, []);
+    if (isAuthenticated) {
+      updateLastActivity();
+    }
+  }, [isAuthenticated]);
 
   // Listen for pet changes from localStorage
   useEffect(() => {
@@ -67,23 +184,82 @@ export default function App() {
     };
   }, [selectedPet]);
 
-  // Save to localStorage whenever data changes
-  useEffect(() => {
-    localStorage.setItem("budget", budget.toString());
-  }, [budget]);
+  // Budget is now stored in backend, no need for localStorage
 
-  useEffect(() => {
-    localStorage.setItem("expenses", JSON.stringify(expenses));
-  }, [expenses]);
+  // Show login page if not authenticated
+  if (!isAuthenticated) {
+    return <Login onLogin={handleLogin} />;
+  }
 
-  const handleAddExpense = (
+  const handleAddExpense = async (
     expenseData: Omit<Expense, "id">,
   ) => {
-    const newExpense: Expense = {
-      ...expenseData,
-      id: Date.now().toString(),
-    };
-    setExpenses((prev) => [...prev, newExpense]);
+    try {
+      const userId = localStorage.getItem("userId");
+      const token = localStorage.getItem("token");
+      
+      if (!userId || !token) {
+        console.error("User not authenticated");
+        return;
+      }
+
+      // Map frontend category to backend category
+      const categoryMap: { [key: string]: string } = {
+        "🍔 Food": "food",
+        "🚗 Transportation": "transportation",
+        "🎬 Entertainment": "entertainment",
+        "🛒 Shopping": "shopping",
+        "🏠 Bills": "housing",
+        "💊 Healthcare": "healthcare",
+        "📚 Education": "education",
+        "✨ Other": "other",
+      };
+
+      const backendCategory = categoryMap[expenseData.category] || "other";
+      
+      // Format date to YYYY-MM-DD
+      const formattedDate = new Date(expenseData.date).toISOString().split('T')[0];
+
+      // Send to backend
+      const response = await fetch("http://localhost:8000/api/v1/expenses/add-direct", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          user_id: userId,
+          amount: expenseData.amount,
+          category: backendCategory,
+          description: expenseData.description,
+          date: formattedDate,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        console.error("Failed to add expense:", error);
+        return;
+      }
+
+      const savedExpense = await response.json();
+
+      // Add to local state with the ID from backend
+      const newExpense: Expense = {
+        id: savedExpense.id,
+        amount: savedExpense.amount,
+        category: expenseData.category, // Use original frontend category for display
+        description: savedExpense.description,
+        date: savedExpense.date,
+      };
+      
+      setExpenses((prev) => [...prev, newExpense]);
+      
+      // Update activity for friendship status
+      updateLastActivity();
+    } catch (error) {
+      console.error("Error adding expense:", error);
+    }
   };
 
   const handleDeleteExpense = (id: string) => {
@@ -161,10 +337,23 @@ export default function App() {
                   </p>
                 </div>
               </div>
-              <BudgetSettings
-                currentBudget={budget}
-                onUpdateBudget={handleUpdateBudget}
-              />
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="hidden sm:flex items-center gap-2 text-sm text-gray-600">
+                  <span>Welcome, <span className="font-semibold">{username}</span></span>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-1 px-3 py-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                    title="Logout"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    <span>Logout</span>
+                  </button>
+                </div>
+                <BudgetSettings
+                  currentBudget={budget}
+                  onUpdateBudget={handleUpdateBudget}
+                />
+              </div>
             </div>
           </div>
         </header>

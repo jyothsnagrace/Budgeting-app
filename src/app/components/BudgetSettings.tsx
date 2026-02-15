@@ -21,12 +21,54 @@ interface BudgetSettingsProps {
 export function BudgetSettings({ currentBudget, onUpdateBudget }: BudgetSettingsProps) {
   const [budget, setBudget] = useState(currentBudget.toString());
   const [open, setOpen] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const newBudget = parseFloat(budget);
     if (!isNaN(newBudget) && newBudget > 0) {
-      onUpdateBudget(newBudget);
-      setOpen(false);
+      setIsSaving(true);
+      setError('');
+      
+      try {
+        const userId = localStorage.getItem('userId');
+        const token = localStorage.getItem('token');
+        
+        if (!userId || !token) {
+          setError('Not authenticated');
+          return;
+        }
+
+        // Save to backend
+        const response = await fetch('http://localhost:8000/api/v1/budgets/set', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            user_id: userId,
+            category: 'total',
+            amount: newBudget,
+            period: 'monthly',
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          setError(error.detail || 'Failed to save budget');
+          return;
+        }
+
+        // Update parent component
+        onUpdateBudget(newBudget);
+        setOpen(false);
+      } catch (err) {
+        console.error('Error saving budget:', err);
+        setError('Failed to save budget. Please try again.');
+      } finally {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -57,10 +99,14 @@ export function BudgetSettings({ currentBudget, onUpdateBudget }: BudgetSettings
               onChange={(e) => setBudget(e.target.value)}
               placeholder="Enter your budget"
               className="text-base"
+              disabled={isSaving}
             />
           </div>
-          <Button onClick={handleSave} className="w-full">
-            Save Budget
+          {error && (
+            <div className="text-sm text-red-600">{error}</div>
+          )}
+          <Button onClick={handleSave} className="w-full" disabled={isSaving}>
+            {isSaving ? 'Saving...' : 'Save Budget'}
           </Button>
         </div>
       </DialogContent>
