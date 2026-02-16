@@ -1,9 +1,0 @@
-{
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "framework": "vite",
-  "installCommand": "npm install",
-  "env": {
-    "VITE_API_URL": "https://budgeting-app-production-2bd0.up.railway.app"
-  }
-}

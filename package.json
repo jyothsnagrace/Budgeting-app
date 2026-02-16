@@ -8,7 +8,7 @@
     "dev": "vite",
     "preview": "vite preview",
     "generate-icons": "node generate-icons.js",
-    "pwa-test": "npm run build && npm run preview"
+
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

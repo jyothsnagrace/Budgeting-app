@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     )
     
     # ============================================
-    # Application Settings
+    # Application Settings (No PWA)
     # ============================================
     APP_NAME: str = "LLM Expense Tracker"
     APP_VERSION: str = "0.1.0"
@@ -38,25 +38,22 @@ class Settings(BaseSettings):
     API_PORT: int = Field(default=8000, env="API_PORT")
     API_PREFIX: str = "/api/v1"
     CORS_ORIGINS: list = [
-        "http://localhost:3000", 
-        "http://localhost:5173", 
-        "http://localhost:5174", 
-        "http://localhost:5175",
-        "https://budgeting-app-production-2bd0.up.railway.app",
-        "https://budgeting-buddy.vercel.app"
+        "http://localhost:3000",
+        "http://localhost:5173"
     ]
     
     # ============================================
-    # Supabase Configuration
+    # Supabase Configuration (No PWA)
     # ============================================
-    SUPABASE_URL: str = Field(..., env="SUPABASE_URL")
-    SUPABASE_KEY: str = Field(..., env="SUPABASE_KEY")
-    SUPABASE_SERVICE_KEY: Optional[str] = Field(None, env="SUPABASE_SERVICE_KEY")
+    # Local development only: Supabase config can be dummy or local
+    SUPABASE_URL: str = Field(default="http://localhost:54321", env="SUPABASE_URL")
+    SUPABASE_KEY: str = Field(default="local-dev-key", env="SUPABASE_KEY")
+    SUPABASE_SERVICE_KEY: Optional[str] = None
     
     # ============================================
-    # LLM Configuration
+    # LLM Configuration (No PWA)
     # ============================================
-    # Choose: "ollama", "groq", "openai"
+    # Local LLM only
     LLM_PROVIDER: str = Field(default="ollama", env="LLM_PROVIDER")
     
     # Ollama settings (local)
@@ -65,12 +62,11 @@ class Settings(BaseSettings):
     OLLAMA_MODEL_VALIDATION: str = Field(default="llama3.2", env="OLLAMA_MODEL_VALIDATION")
     
     # Groq settings (cloud)
-    GROQ_API_KEY: Optional[str] = Field(None, env="GROQ_API_KEY")
-    GROQ_MODEL: str = Field(default="llama-3.1-8b-instant", env="GROQ_MODEL")
-    
-    # OpenAI settings (cloud)
-    OPENAI_API_KEY: Optional[str] = Field(None, env="OPENAI_API_KEY")
-    OPENAI_MODEL: str = Field(default="gpt-4o-mini", env="OPENAI_MODEL")
+    # Remove cloud LLM providers for local only
+    GROQ_API_KEY: Optional[str] = None
+    GROQ_MODEL: str = ""
+    OPENAI_API_KEY: Optional[str] = None
+    OPENAI_MODEL: str = ""
     
     # LLM behavior
     LLM_TEMPERATURE: float = 0.1  # Low temperature for structured outputs
@@ -78,7 +74,7 @@ class Settings(BaseSettings):
     LLM_TIMEOUT: int = 30  # seconds
     
     # ============================================
-    # Voice Input Configuration (Whisper)
+    # Voice Input Configuration (No PWA)
     # ============================================
     WHISPER_MODEL: str = Field(default="base", env="WHISPER_MODEL")  # tiny, base, small, medium, large
     WHISPER_LANGUAGE: str = "en"
@@ -86,21 +82,19 @@ class Settings(BaseSettings):
     MAX_AUDIO_LENGTH: int = 60  # seconds
     
     # ============================================
-    # Cost of Living API
+    # Cost of Living API (No PWA)
     # ============================================
     # RapidAPI - Cost of Living and Prices API
     RAPIDAPI_KEY: Optional[str] = Field(default=None, env="RAPIDAPI_KEY")
-    COST_API_PROVIDER: str = Field(default="rapidapi", env="COST_API_PROVIDER")
-    
-    # Legacy providers
-    NUMBEO_API_KEY: Optional[str] = Field(None, env="NUMBEO_API_KEY")
-    TELEPORT_API_URL: str = "https://api.teleport.org/api/urban_areas/"
+    COST_API_PROVIDER: str = Field(default="local", env="COST_API_PROVIDER")
+    NUMBEO_API_KEY: Optional[str] = None
+    TELEPORT_API_URL: str = ""
     
     # Cache settings
     COST_DATA_CACHE_HOURS: int = 24 * 30  # Cache for 30 days
     
     # ============================================
-    # Authentication Settings
+    # Authentication Settings (No PWA)
     # ============================================
     # Username-only auth (no password)
     SESSION_SECRET_KEY: str = Field(default="3b8e1c7e2f4a4e6b9d2c1f8e7a5b6c3d4e7f2a1b9c8d6e5f4a2b7c9e8d1f3a5", env="SESSION_SECRET_KEY")
@@ -108,20 +102,20 @@ class Settings(BaseSettings):
     SESSION_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
     # ============================================
-    # Logging
+    # Logging (No PWA)
     # ============================================
     LOG_LEVEL: str = Field(default="INFO", env="LOG_LEVEL")
     LOG_TO_FILE: bool = False
     LOG_FILE_PATH: str = "logs/app.log"
     
     # ============================================
-    # Rate Limiting
+    # Rate Limiting (No PWA)
     # ============================================
     RATE_LIMIT_ENABLED: bool = True
     RATE_LIMIT_PER_MINUTE: int = 60
     
     # ============================================
-    # Database Connection Pool
+    # Database Connection Pool (No PWA)
     # ============================================
     DB_POOL_SIZE: int = 10
     DB_MAX_OVERFLOW: int = 20
@@ -152,21 +146,11 @@ def validate_config():
     """
     errors = []
     
-    # Check Supabase config
+    # Local-only: minimal config validation
     if not settings.SUPABASE_URL:
-        errors.append("SUPABASE_URL is required")
+        errors.append("SUPABASE_URL is required (local)")
     if not settings.SUPABASE_KEY:
-        errors.append("SUPABASE_KEY is required")
-    
-    # Check LLM provider config
-    if settings.LLM_PROVIDER == "groq" and not settings.GROQ_API_KEY:
-        errors.append("GROQ_API_KEY is required when using Groq")
-    if settings.LLM_PROVIDER == "openai" and not settings.OPENAI_API_KEY:
-        errors.append("OPENAI_API_KEY is required when using OpenAI")
-    
-    # Check session secret
-    if settings.SESSION_SECRET_KEY == "your-secret-key-change-in-production" and settings.ENVIRONMENT == "production":
-        errors.append("SESSION_SECRET_KEY must be changed in production")
+        errors.append("SUPABASE_KEY is required (local)")
     
     if errors:
         raise ValueError(f"Configuration errors:\n" + "\n".join(f"  - {e}" for e in errors))
@@ -185,7 +169,7 @@ def print_config_summary():
     print(f"LLM Provider: {settings.LLM_PROVIDER}")
     print(f"Whisper Model: {settings.WHISPER_MODEL}")
     print(f"Cost API: {settings.COST_API_PROVIDER}")
-    print(f"Supabase URL: {settings.SUPABASE_URL[:30]}...")
+    print(f"Supabase URL: {settings.SUPABASE_URL}")
     print("=" * 60)
 
 
