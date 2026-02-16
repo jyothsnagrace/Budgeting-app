@@ -80,7 +80,7 @@ export function Login({ onLogin }: LoginProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" encType="application/json">
             <div className="space-y-2">
               <label htmlFor="username" className="text-sm font-medium text-gray-700">
                 Username
