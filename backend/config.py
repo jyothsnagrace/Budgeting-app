@@ -103,7 +103,7 @@ class Settings(BaseSettings):
     # Authentication Settings
     # ============================================
     # Username-only auth (no password)
-    SESSION_SECRET_KEY: str = Field(default="iHHZBMJnCyMceK91A6oThgmxRBNIJUS0UnEwHI6LXyY", env="SESSION_SECRET_KEY")
+    SESSION_SECRET_KEY: str = Field(default="3b8e1c7e2f4a4e6b9d2c1f8e7a5b6c3d4e7f2a1b9c8d6e5f4a2b7c9e8d1f3a5", env="SESSION_SECRET_KEY")
     SESSION_ALGORITHM: str = "HS256"
     SESSION_EXPIRE_MINUTES: int = 60 * 24 * 7  # 7 days
     
