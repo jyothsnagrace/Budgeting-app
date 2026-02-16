@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
+  // base: '/Budgeting-app/', // Set for GitHub Pages deployment (repo: Budgeting-app)
   build: {
     chunkSizeWarningLimit: 1000, // or higher value
   },

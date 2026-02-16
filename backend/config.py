@@ -43,7 +43,7 @@ class Settings(BaseSettings):
         "http://localhost:5174", 
         "http://localhost:5175",
         "https://budgeting-app-production-2bd0.up.railway.app",
-        "https://budgeting-app-ecru-eta.vercel.app"
+        "https://budgeting-buddy.vercel.app"
     ]
     
     # ============================================
