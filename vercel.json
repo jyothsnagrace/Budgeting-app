@@ -4,6 +4,6 @@
   "framework": "vite",
   "installCommand": "npm install",
   "env": {
-    "VITE_API_URL": "https://budgeting-app-production-9da3.up.railway.app"
+    "VITE_API_URL": "https://budgeting-app-production-2bd0.up.railway.app"
   }
 }
