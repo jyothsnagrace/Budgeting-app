@@ -33,7 +33,6 @@ groq>=1.0.0
 
 # For structured outputs
 jsonschema==4.23.0
-pydantic==2.9.0
 
 # ============================================
 # Voice Input (Whisper)
@@ -43,12 +42,12 @@ pydantic==2.9.0
 # Faster implementation (optional)
 # faster-whisper==1.0.3
 
-# Audio processing
-sounddevice==0.5.1
-soundfile==0.12.1
-numpy==1.26.4
-torch==2.5.1
-torchaudio==2.5.1
+# Audio processing (removed - using Groq Whisper API instead)
+# sounddevice==0.5.1
+# soundfile==0.12.1
+# numpy==1.26.4
+# torch==2.5.1  # Heavy dependency, not needed for Groq API
+# torchaudio==2.5.1  # Heavy dependency, not needed for Groq API
 
 # ============================================
 # Receipt OCR
@@ -59,7 +58,7 @@ pytesseract==0.3.13
 # ============================================
 # HTTP Clients
 # ============================================
-httpx==0.27.2
+# httpx already included above
 requests==2.32.3
 aiohttp==3.10.10
 
@@ -87,7 +86,7 @@ structlog==24.4.0
 pytest==8.3.3
 pytest-asyncio==0.24.0
 pytest-cov==6.0.0
-httpx==0.27.2  # For testing async endpoints
+# httpx already included above
 
 # ============================================
 # Development Tools
