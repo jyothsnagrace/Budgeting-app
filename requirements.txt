@@ -38,7 +38,8 @@ pydantic==2.9.0
 # ============================================
 # Voice Input (Whisper)
 # ============================================
-openai-whisper==20240930
+# Note: Using Groq Whisper API instead of local openai-whisper
+# openai-whisper==20240930  # Heavy dependency (PyTorch, ffmpeg), commented out for production
 # Faster implementation (optional)
 # faster-whisper==1.0.3
 
